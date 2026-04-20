@@ -1,0 +1,58 @@
+# ============================================
+# Silicon Nanowire Tension - Parametric Study
+# Usage: lmp -in in.si_parametric -var RAD 4 -var RATE 0.0005
+# ============================================
+
+units           metal
+atom_style      atomic
+boundary        s s p
+
+# --- BUILD NANOWIRE ---
+# RAD = radius in lattice units
+# Wire length fixed at 12 lattice units for all sizes
+lattice         diamond 5.431
+region          bigbox block -15 15 -15 15 0 12 units lattice
+create_box      1 bigbox
+region          wire cylinder z 0 0 ${RAD} 0 12 units lattice
+create_atoms    1 region wire
+mass            1 28.085
+
+# --- FORCE FIELD ---
+pair_style      tersoff
+pair_coeff      * * Si.tersoff Si
+
+# --- MINIMIZE ---
+minimize        1.0e-8 1.0e-10 2000 20000
+reset_timestep  0
+
+# --- EQUILIBRATE (30 ps) ---
+velocity        all create 300 54321 dist gaussian mom yes rot yes
+fix             1 all nvt temp 300 300 0.1
+timestep        0.001
+
+thermo          1000
+thermo_style    custom step temp pe press pzz lz
+
+run             30000
+
+# --- DEFORMATION ---
+unfix           1
+reset_timestep  0
+fix             1 all nvt temp 300 300 0.1
+
+variable        tmp equal lz
+variable        lz0 equal ${tmp}
+variable        strain equal (lz-v_lz0)/v_lz0
+variable        stress_GPa equal -pzz/10000
+
+# RATE = engineering strain rate
+fix             2 all deform 1 z erate ${RATE} units box remap x
+
+fix             3 all ave/time 1 100 100 v_strain v_stress_GPa file ../outputs/ss_R${RAD}_E${RATE}.dat
+
+thermo          5000
+thermo_style    custom step temp v_strain v_stress_GPa pe lz press
+
+run             ${NSTEPS}
+
+print "DONE RAD=${RAD} RATE=${RATE} atoms=$(atoms) finalstrain=$(v_strain)"
