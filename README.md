@@ -43,20 +43,20 @@ this regime.
   systematic region scanning with R² quality control
 
 ## Files
-scripts/
-in.si_parametric    — Parameterized input (-var RAD, -var RATE, -var NSTEPS)
-in.si_tension       — Single-run version (original study)
-run_sweep.sh        — Batch runner for all 16 combinations
-Si.tersoff          — Tersoff potential file
-outputs/
-ss_R{rad}_E{rate}.dat   — Stress-strain data (16 files)
-log_R{rad}_E{rate}.txt  — LAMMPS logs (16 files)
-analysis/
-analyze_sweep.py    — Parametric analysis + multi-panel figure
-analyze_si_tension.py — Single-run analysis (original study)
-figures/
-parametric_sweep.png   — 3-panel: size effect, rate effect, stress-strain
-si_stress_strain.png   — Si vs Cu comparison
+- scripts/
+- in.si_parametric    — Parameterized input (-var RAD, -var RATE, -var NSTEPS)
+- in.si_tension       — Single-run version (original study)
+- run_sweep.sh        — Batch runner for all 16 combinations
+- Si.tersoff          — Tersoff potential file
+- outputs/
+- ss_R{rad}_E{rate}.dat   — Stress-strain data (16 files)
+- log_R{rad}_E{rate}.txt  — LAMMPS logs (16 files)
+- analysis/
+- analyze_sweep.py    — Parametric analysis + multi-panel figure
+- analyze_si_tension.py — Single-run analysis (original study)
+- figures/
+- parametric_sweep.png   — 3-panel: size effect, rate effect, stress-strain
+- si_stress_strain.png   — Si vs Cu comparison
 
 ## How to Reproduce
 
@@ -67,25 +67,29 @@ cp /usr/share/lammps/potentials/Si.tersoff .
 cd ../analysis
 python3 analyze_sweep.py
 ```
-
 ## Discussion
 
-The strong size dependence of E reflects the dominant role of surface
-atoms in nanoscale silicon. In the diamond cubic structure, bulk atoms
-have 4 tetrahedral neighbors. Surface atoms have 1–3 neighbors with
-dangling bonds, contributing lower local stiffness. As the wire
-diameter increases and the surface fraction decreases, E approaches
-the bulk value.
+Two effects contribute to the low measured E compared to experimental
+Si [100] = 130 GPa:
 
-The weak strain-rate dependence confirms that elastic stiffness is
-an equilibrium property — it depends on the curvature of the
-potential energy surface near equilibrium, not on how fast you probe
-it. This contrasts with yield stress and fracture behavior, which are
-kinetically controlled and strongly rate-dependent.
+**1. Surface effect (explains ~34→47 GPa, i.e. ~28% of the stiffness):**
+Under-coordinated surface atoms in diamond cubic silicon have fewer
+than 4 tetrahedral bonds, reducing local stiffness. Extrapolation to
+zero surface fraction gives E ≈ 47 GPa for both 1/d and surface
+fraction models, confirming a significant but not dominant role.
 
-To reach the bulk E value (~130 GPa), simulations at d > 500 Å
-(>200,000 atoms) would be needed, ideally with periodic boundaries
-in all directions (no surfaces) as a control.
+**2. Tersoff potential limitation (explains 47 vs 130 GPa):**
+The Tersoff potential was parameterized to reproduce cohesive energy,
+lattice constant, and bulk modulus (~98 GPa), but systematically
+underestimates the anisotropic elastic constants C11 and C12 that
+determine E[100]. This is a known limitation documented in the
+literature. The Stillinger-Weber potential or modified Tersoff
+(Si.tersoff.mod) may give closer values.
+
+**Key insight:** Both potential accuracy AND system size matter.
+A parametric sweep isolates these effects quantitatively — this
+is the methodology that distinguishes computational engineering
+from black-box simulation.
 
 ## References
 
