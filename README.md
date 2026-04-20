@@ -87,9 +87,7 @@ literature. The Stillinger-Weber potential or modified Tersoff
 (Si.tersoff.mod) may give closer values.
 
 **Key insight:** Both potential accuracy AND system size matter.
-A parametric sweep isolates these effects quantitatively — this
-is the methodology that distinguishes computational engineering
-from black-box simulation.
+A parametric sweep isolates these effects quantitatively.
 
 ## References
 
